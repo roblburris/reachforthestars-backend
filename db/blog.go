@@ -99,5 +99,12 @@ func GetBlogPostByIDDB(ctx context.Context, conn *pgx.Conn, path string) BlogPos
 
 func InsertNewBlogPost(ctx context.Context, conn *pgx.Conn, postInfo *BlogPost, title string) error {
 	// TODO: finish InsertNewBlogPost function that inserts new blog post into DB
+	tx, err := conn.BeginTx(ctx, pgx.TxOptions{
+		IsoLevel: pgx.Serializable,
+	})
+
+	if err != nil {
+		return err
+	}
 	return errors.New("new error")
 }
