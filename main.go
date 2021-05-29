@@ -7,10 +7,12 @@ import (
 )
 
 func main() {
+	// create context
+	ctx := context.Background()
 	// create DB connection
-	conn, err := pgx.Connect(context.Background(), URL)
+	conn, err := pgx.Connect(ctx, URL)
 	if err != nil {
 		log.Fatalf("Unable to connect to DB %v\n", err)
 	}
-	defer conn.Close(context.Background())
+	defer conn.Close(ctx)
 }

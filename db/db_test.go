@@ -9,18 +9,19 @@ import (
 
 // Runs all unit tests that relate to the Db
 func TestDB(t *testing.T) {
-	conn, err := pgx.Connect(context.Background(), "postgres://localhost:5432/rfts-test")
+	ctx := context.Background()
+	conn, err := pgx.Connect(ctx, "postgres://localhost:5432/rfts-test")
 	if err != nil {
 		t.Fatalf("Unable to connect to DB, no tests run. Error: %v\n", err)
 	}
-	defer conn.Close(context.Background())
+	defer conn.Close(ctx)
 
 	// clear DB and run create tables
 	deleteTables, err := ioutil.ReadFile("./setup/delete-tables.sql")
 	if err != nil {
 		t.Fatalf("Unable to read delete-tables file, no tests run. Error: %v\n", err)
 	}
-	_, err = conn.Exec(context.Background(), string(deleteTables))
+	_, err = conn.Exec(ctx, string(deleteTables))
 	if err != nil {
 		t.Fatalf("Unable to wipe existing tables, no tests run. Error: %v\n", err)
 	}
@@ -28,7 +29,7 @@ func TestDB(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Unable to read create-tables file, no tests run. Error: %v\n", err)
 	}
-	_, err = conn.Exec(context.Background(), string(createTables))
+	_, err = conn.Exec(ctx, string(createTables))
 	if err != nil {
 		t.Fatalf("Unable create necessary tables, no tests run %v\n", err)
 	}
@@ -54,7 +55,7 @@ func TestDB(t *testing.T) {
 
 	// insert test data
 	_, err = conn.Exec(
-		context.Background(),
+		ctx,
 		"INSERT INTO BLOG_POSTS VALUES ($1, $2, $3, $4, $5, $6)",
 		test1.blogid,
 		test1.author,
@@ -67,7 +68,7 @@ func TestDB(t *testing.T) {
 	}
 
 	_, err = conn.Exec(
-		context.Background(),
+		ctx,
 		"INSERT INTO BLOG_POSTS VALUES ($1, $2, $3, $4, $5, $6)",
 		test2.blogid,
 		test2.author,
@@ -80,11 +81,11 @@ func TestDB(t *testing.T) {
 	}
 
 	// Unit tests for testing blog DB
-	testGetAllBlogPosts(t, context.Background(), conn)
+	testGetAllBlogPosts(t, ctx, conn)
 }
 
-func testGetAllBlogPosts(t * testing.T, context context.Context, conn *pgx.Conn) {
-	rows := getAllBlogPosts(context, conn)
+func testGetAllBlogPosts(t * testing.T, ctx context.Context, conn *pgx.Conn) {
+	rows := getAllBlogPosts(ctx, conn)
 	// check the results of the first row
 	res0 := rows[0]
 	error := false
