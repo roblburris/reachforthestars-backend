@@ -98,13 +98,67 @@ func GetBlogPostByIDDB(ctx context.Context, conn *pgx.Conn, path string) BlogPos
 }
 
 func InsertNewBlogPost(ctx context.Context, conn *pgx.Conn, postInfo *BlogPost, title string) error {
-	// TODO: finish InsertNewBlogPost function that inserts new blog post into DB
 	tx, err := conn.BeginTx(ctx, pgx.TxOptions{
 		IsoLevel: pgx.Serializable,
 	})
+	defer tx.Rollback(ctx)
 
-	if err != nil {
-		return err
+	// ensure title is unused
+	rows, err := tx.Query(ctx, COUNT_TITLE_OCCURENCES)
+	var countTitle int
+	for rows.Next() {
+		err = rows.Scan(&countTitle)
+		if err != nil {
+			log.Printf("ERROR: unable count title occurences. %v\n", err)
+			return errors.New("sql_error")
+		}
 	}
-	return errors.New("new error")
+	if countTitle != 0 {
+		return errors.New("duplicate_title")
+	}
+
+	// find the max blogID + 1 to use as next blogID
+	rows, err = tx.Query(ctx, FIND_MAX_BLOGID)
+	if err != nil {
+		log.Printf("ERROR: unable to find max blog ID. %v\n", err)
+		return errors.New("sql_error")
+	}
+
+	var blogID int
+	for rows.Next() {
+		err = rows.Scan(&blogID)
+		if err != nil {
+			log.Printf("ERROR: unable to find max blog ID. %v\n", err)
+			return errors.New("sql_error")
+		}
+	}
+
+	// everything is OK, insert into DB
+	postInfo.BlogID = uint32(blogID + 1)
+	_, err = tx.Exec(ctx,
+		INSERT_NEW_POST,
+		postInfo.BlogID,
+		postInfo.Author,
+		postInfo.Date,
+		postInfo.Duration,
+		postInfo.URL,
+		postInfo.Content)
+	if err != nil {
+		log.Printf("ERROR: unable to insert post into DB. %v\n", err)
+		return errors.New("sql_error")
+	}
+
+	// likewise, insert into BLOG_POST_TITLES table
+	_, err = tx.Exec(ctx, INSERT_NEW_TITLE, postInfo.BlogID, title)
+	if err != nil {
+		log.Printf("ERROR: unable to insert post into DB. %v\n", err)
+		return errors.New("sql_error")
+	}
+
+	err = tx.Commit(ctx)
+	if err != nil {
+		return errors.New("sql_unable_commit")
+	}
+
+	return nil
 }
