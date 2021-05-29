@@ -85,7 +85,7 @@ func TestDB(t *testing.T) {
 }
 
 func testGetAllBlogPosts(t * testing.T, ctx context.Context, conn *pgx.Conn) {
-	rows := getAllBlogPosts(ctx, conn)
+	rows := GetAllBlogPosts(ctx, conn)
 	// check the results of the first row
 	res0 := rows[0]
 	error := false

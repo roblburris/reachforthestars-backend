@@ -6,7 +6,7 @@ import (
 	"log"
 )
 
-func getAllBlogPosts(ctx context.Context, conn *pgx.Conn) []BlogPost {
+func GetAllBlogPosts(ctx context.Context, conn *pgx.Conn) []BlogPost {
 	tx, err := conn.BeginTx(ctx, pgx.TxOptions{
 		IsoLevel:       pgx.ReadUncommitted,
 	})
@@ -15,7 +15,12 @@ func getAllBlogPosts(ctx context.Context, conn *pgx.Conn) []BlogPost {
 		log.Println("ERROR: Unable to get blog posts")
 		return nil
 	}
-	defer tx.Rollback(ctx)
+	defer func(tx pgx.Tx, ctx context.Context) {
+		err := tx.Rollback(ctx)
+		if err != nil {
+			tx.Rollback(ctx)
+		}
+	}(tx, ctx)
 
 	rows, err:= tx.Query(ctx, "SELECT * FROM BLOG_POSTS")
 	if err != nil {
@@ -35,6 +40,9 @@ func getAllBlogPosts(ctx context.Context, conn *pgx.Conn) []BlogPost {
 		}
 		blogPosts = append(blogPosts, temp)
 	}
-	tx.Commit(ctx)
+	err = tx.Commit(ctx)
+	if err != nil {
+		tx.Rollback(ctx)
+	}
 	return blogPosts
 }
