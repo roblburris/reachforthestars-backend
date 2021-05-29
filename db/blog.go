@@ -2,14 +2,20 @@ package db
 
 import (
 	"context"
+	"errors"
 	"github.com/jackc/pgx/v4"
 	"log"
 )
 
+// Prepared SQL statements
 const GET_BLOG_POST_STATEMENT = `SELECT 
 							FROM BLOG_POSTS as b, BLOG_POST_TITLES as t 
 							WHERE t.blogid = b.blogID
 							AND t.blogTitle = $1`
+const INSERT_NEW_POST = `INSERT INTO BLOG_POSTS VALUES ($1, $2, $3, $4, $5, $6)`
+const INSERT_NEW_TITLE = `INSERT INTO BLOG_POST_TITLES VALUES($1, $2)`
+const COUNT_TITLE_OCCURENCES = `SELECT COUNT(*) FROM BLOG_POST_TITLES WHERE blogTitle = $1`
+const FIND_MAX_BLOGID = `SELECT MAX(blogid) FROM BLOG_POSTS`
 
 // GetAllBlogPostsDB returns all blog posts for display on the blog page
 func GetAllBlogPostsDB(ctx context.Context, conn *pgx.Conn) []BlogPost {
@@ -62,7 +68,7 @@ func GetAllBlogPostsDB(ctx context.Context, conn *pgx.Conn) []BlogPost {
 // GetBlogPostByIDDB gets blog post by specific blog 'title'
 func GetBlogPostByIDDB(ctx context.Context, conn *pgx.Conn, path string) BlogPost {
 	tx, err := conn.BeginTx(ctx, pgx.TxOptions{
-		IsoLevel: pgx.Serializable,
+		IsoLevel: pgx.ReadUncommitted,
 	})
 	if err != nil {
 		log.Printf("ERROR: Unable to set transaction level. %v\n", err)
@@ -89,4 +95,9 @@ func GetBlogPostByIDDB(ctx context.Context, conn *pgx.Conn, path string) BlogPos
 		}
 	}
 	return postRes
+}
+
+func InsertNewBlogPost(ctx context.Context, conn *pgx.Conn, postInfo *BlogPost, title string) error {
+	// TODO: finish InsertNewBlogPost function that inserts new blog post into DB
+	return errors.New("new error")
 }
