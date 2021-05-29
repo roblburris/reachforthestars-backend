@@ -17,8 +17,8 @@ const INSERT_NEW_TITLE = `INSERT INTO BLOG_POST_TITLES VALUES($1, $2)`
 const COUNT_TITLE_OCCURENCES = `SELECT COUNT(*) FROM BLOG_POST_TITLES WHERE blogTitle = $1`
 const FIND_MAX_BLOGID = `SELECT MAX(blogid) FROM BLOG_POSTS`
 
-// GetAllBlogPostsDB returns all blog posts for display on the blog page
-func GetAllBlogPostsDB(ctx context.Context, conn *pgx.Conn) []BlogPost {
+// GetAllBlogPosts returns all blog posts for display on the blog page
+func GetAllBlogPosts(ctx context.Context, conn *pgx.Conn) []BlogPost {
 	tx, err := conn.BeginTx(ctx, pgx.TxOptions{
 		IsoLevel:       pgx.ReadUncommitted,
 	})
@@ -65,8 +65,8 @@ func GetAllBlogPostsDB(ctx context.Context, conn *pgx.Conn) []BlogPost {
 	return blogPosts
 }
 
-// GetBlogPostByIDDB gets blog post by specific blog 'title'
-func GetBlogPostByIDDB(ctx context.Context, conn *pgx.Conn, path string) BlogPost {
+// GetBlogPostByID gets blog post by specific blog 'title'
+func GetBlogPostByID(ctx context.Context, conn *pgx.Conn, path string) BlogPost {
 	tx, err := conn.BeginTx(ctx, pgx.TxOptions{
 		IsoLevel: pgx.ReadUncommitted,
 	})

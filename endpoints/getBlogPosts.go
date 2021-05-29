@@ -32,7 +32,7 @@ func GetAllBlogPosts(ctx context.Context, conn *pgx.Conn) RequestHandler {
 
 		// get blog posts from the DB and filter the content to create
 		// summaries
-		res := db.GetAllBlogPostsDB(ctx, conn)
+		res := db.GetAllBlogPosts(ctx, conn)
 		for i := 0; i < len(res); i++ {
 			strippedContent := strings.Fields(string(res[i].Content))
 			temp := strings.Join(strippedContent[:min(len(strippedContent), 20)], " ")
@@ -72,7 +72,7 @@ func GetSpecificBlogPost(ctx context.Context, conn *pgx.Conn) RequestHandler {
 		}
 
 		// title is OK (for now), query DB to get desired blog post
-		post := db.GetBlogPostByIDDB(ctx, conn, desiredTitle)
+		post := db.GetBlogPostByID(ctx, conn, desiredTitle)
 		if post.Author == "" {
 			text := "404: not found"
 			log.Printf("unable to find post, %s\n", text)
