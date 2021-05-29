@@ -2,14 +2,10 @@ package db
 
 // BlogPost represents blog post entry in DB
 type BlogPost struct {
-	blogid uint32 `db:"blogid"`
-	author string `db:"author"`
-	date string `db:"date"`
-	duration uint32 `db:"duration"`
-	url []byte `db:"url"`
-	content []byte `db:"content"`
-}
-
-func main() {
-	return
+	BlogID   uint32 `db:"blogid"`
+	Author   string `db:"author"`
+	Date     string `db:"date"`
+	Duration uint32 `db:"duration"`
+	URL      []byte `db:"url"`
+	Content  []byte `db:"content"`
 }

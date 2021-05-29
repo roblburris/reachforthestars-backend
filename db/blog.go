@@ -6,7 +6,8 @@ import (
 	"log"
 )
 
-func GetAllBlogPosts(ctx context.Context, conn *pgx.Conn) []BlogPost {
+// GetAllBlogPostsDB returns all blog posts for display on the blog page
+func GetAllBlogPostsDB(ctx context.Context, conn *pgx.Conn) []BlogPost {
 	tx, err := conn.BeginTx(ctx, pgx.TxOptions{
 		IsoLevel:       pgx.ReadUncommitted,
 	})
@@ -33,7 +34,7 @@ func GetAllBlogPosts(ctx context.Context, conn *pgx.Conn) []BlogPost {
 	var blogPosts []BlogPost
 	for rows.Next() {
 		var temp BlogPost
-		err = rows.Scan(&temp.blogid, &temp.author, &temp.date, &temp.duration, &temp.url, &temp.content)
+		err = rows.Scan(&temp.BlogID, &temp.Author, &temp.Date, &temp.Duration, &temp.URL, &temp.Content)
 		if err != nil {
 			log.Printf("ERROR: Unable to parse SQL data. %v\n", err)
 			return nil
