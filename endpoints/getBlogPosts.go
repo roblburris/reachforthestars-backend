@@ -3,12 +3,12 @@ package endpoints
 import (
     "context"
     "encoding/json"
+    "github.com/jackc/pgx/v4/pgxpool"
     "log"
     "net/http"
     "strings"
 
     "github.com/gorilla/mux"
-    "github.com/jackc/pgx/v4"
     "github.com/roblburris/reachforthestars-backend/db"
 )
 
@@ -21,7 +21,7 @@ func min(a, b int) int {
 }
 
 // GetAllBlogPosts Returns all blog posts for the blog page
-func GetAllBlogPosts(ctx context.Context, conn *pgx.Conn) RequestHandler {
+func GetAllBlogPosts(ctx context.Context, conn *pgxpool.Pool) RequestHandler {
     return func(w http.ResponseWriter, r *http.Request) {
         if r.Method != http.MethodGet {
             text := "405: expected GET"
@@ -54,7 +54,7 @@ func GetAllBlogPosts(ctx context.Context, conn *pgx.Conn) RequestHandler {
     }
 }
 
-func GetSpecificBlogPost(ctx context.Context, conn *pgx.Conn) RequestHandler {
+func GetSpecificBlogPost(ctx context.Context, conn *pgxpool.Pool) RequestHandler {
     return func(w http.ResponseWriter, r *http.Request) {
         if r.Method != http.MethodGet {
             text := "405: expected GET"

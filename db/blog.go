@@ -4,6 +4,7 @@ import (
     "context"
     "errors"
     "github.com/jackc/pgx/v4"
+    "github.com/jackc/pgx/v4/pgxpool"
     "log"
 )
 
@@ -21,7 +22,14 @@ const COUNT_TITLE_OCCURENCES = `SELECT COUNT(*) FROM BLOG_POST_TITLES WHERE blog
 const FIND_MAX_BLOGID = `SELECT MAX(blogid) FROM BLOG_POSTS`
 
 // GetAllBlogPosts returns all blog posts for display on the blog page
-func GetAllBlogPosts(ctx context.Context, conn *pgx.Conn) []BlogPost {
+func GetAllBlogPosts(ctx context.Context, pool *pgxpool.Pool) []BlogPost {
+    conn, err := pool.Acquire(ctx)
+    if err != nil {
+        log.Printf("ERROR: unable to acquire connection from pool. %v\n", err)
+        return nil
+    }
+    defer conn.Release()
+
     tx, err := conn.BeginTx(ctx, pgx.TxOptions{
         IsoLevel: pgx.ReadUncommitted,
     })
@@ -69,7 +77,13 @@ func GetAllBlogPosts(ctx context.Context, conn *pgx.Conn) []BlogPost {
 }
 
 // GetBlogPostByID gets blog post by specific blog 'title'
-func GetBlogPostByID(ctx context.Context, conn *pgx.Conn, path string) BlogPost {
+func GetBlogPostByID(ctx context.Context, pool *pgxpool.Pool, path string) BlogPost {
+    conn, err := pool.Acquire(ctx)
+    if err != nil {
+        log.Printf("ERROR: unable to acquire connection from pool. %v\n", err)
+        return BlogPost{}
+    }
+    defer conn.Release()
     tx, err := conn.BeginTx(ctx, pgx.TxOptions{
         IsoLevel: pgx.ReadUncommitted,
     })
@@ -83,6 +97,7 @@ func GetBlogPostByID(ctx context.Context, conn *pgx.Conn, path string) BlogPost 
         log.Printf("ERROR: Unable to get specified blog post from DB. %v\n", err)
         return BlogPost{}
     }
+    defer queryRes.Close()
     var postRes BlogPost
     for queryRes.Next() {
         err = queryRes.Scan(&postRes.BlogID,
@@ -100,14 +115,29 @@ func GetBlogPostByID(ctx context.Context, conn *pgx.Conn, path string) BlogPost 
     return postRes
 }
 
-func InsertNewBlogPost(ctx context.Context, conn *pgx.Conn, postInfo *BlogPost, title string) error {
+func InsertNewBlogPost(ctx context.Context, pool *pgxpool.Pool, postInfo *BlogPost, title string) error {
+    conn, err := pool.Acquire(ctx)
+    if err != nil {
+        log.Printf("ERROR: unable to acquire connection from pool. %v\n", err)
+        return errors.New("sql_error")
+    }
+    defer conn.Release()
     tx, err := conn.BeginTx(ctx, pgx.TxOptions{
         IsoLevel: pgx.Serializable,
     })
+    if err != nil {
+        log.Printf("ERROR: could not create transaction. %v\n", err)
+        return errors.New("sql_error_transaction")
+    }
     defer tx.Rollback(ctx)
 
     // ensure title is unused
-    rows, err := tx.Query(ctx, COUNT_TITLE_OCCURENCES)
+    rows, err := tx.Query(ctx, COUNT_TITLE_OCCURENCES, title)
+    if err != nil {
+        log.Printf("ERROR: unable to check title. %v\n", err)
+        return errors.New("sql_error")
+    }
+
     var countTitle int
     for rows.Next() {
         err = rows.Scan(&countTitle)
@@ -119,6 +149,7 @@ func InsertNewBlogPost(ctx context.Context, conn *pgx.Conn, postInfo *BlogPost, 
     if countTitle != 0 {
         return errors.New("duplicate_title")
     }
+    rows.Close()
 
     // find the max blogID + 1 to use as next blogID
     rows, err = tx.Query(ctx, FIND_MAX_BLOGID)
@@ -135,6 +166,7 @@ func InsertNewBlogPost(ctx context.Context, conn *pgx.Conn, postInfo *BlogPost, 
             return errors.New("sql_error")
         }
     }
+    rows.Close()
 
     // everything is OK, insert into DB
     postInfo.BlogID = uint32(blogID + 1)

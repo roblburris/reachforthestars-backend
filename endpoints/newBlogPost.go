@@ -3,14 +3,14 @@ package endpoints
 import (
     "context"
     "encoding/json"
-    "github.com/jackc/pgx/v4"
+    "github.com/jackc/pgx/v4/pgxpool"
     "github.com/roblburris/reachforthestars-backend/db"
     "io/ioutil"
     "log"
     "net/http"
 )
 
-func InsertNewBlogPost(ctx context.Context, conn *pgx.Conn) RequestHandler {
+func InsertNewBlogPost(ctx context.Context, conn *pgxpool.Pool) RequestHandler {
     return func(w http.ResponseWriter, r *http.Request) {
         if r.Method != http.MethodPost {
             text := "405: expected Post"
@@ -39,14 +39,6 @@ func InsertNewBlogPost(ctx context.Context, conn *pgx.Conn) RequestHandler {
         if title == "" {
             text := "400: bad request"
             log.Printf("ERROR: could not read \"title\" field. %s\n", text)
-            w.WriteHeader(http.StatusBadRequest)
-            return
-        }
-
-        blogID := result["blogID"].(uint32)
-        if blogID == 0 {
-            text := "400: bad request"
-            log.Printf("ERROR: could not read \"blogID\" field. %s\n", text)
             w.WriteHeader(http.StatusBadRequest)
             return
         }
@@ -93,7 +85,7 @@ func InsertNewBlogPost(ctx context.Context, conn *pgx.Conn) RequestHandler {
 
         // insert into DB being careful to handle the possible error
         blogPost := db.BlogPost{
-            BlogID:   blogID,
+            BlogID:   0,
             Author:   author,
             Date:     date,
             Duration: duration,

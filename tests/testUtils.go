@@ -2,13 +2,13 @@ package tests
 
 import (
     "context"
-    "github.com/jackc/pgx/v4"
+    "github.com/jackc/pgx/v4/pgxpool"
     "github.com/roblburris/reachforthestars-backend/db"
     "io/ioutil"
     "testing"
 )
 
-func SetupTestDB(t *testing.T, ctx context.Context, conn *pgx.Conn) {
+func SetupTestDB(t *testing.T, ctx context.Context, conn *pgxpool.Pool) {
     // clear DB and run create tables
     deleteTables, err := ioutil.ReadFile("../db/setup/delete-tables.sql")
     if err != nil {
