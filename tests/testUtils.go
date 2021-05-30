@@ -29,7 +29,7 @@ func SetupTestDB(t *testing.T, ctx context.Context, conn *pgx.Conn) {
 
     // insert test data into BLOG_POSTS table
     test1 := db.BlogPost{
-        BlogID:   0,
+        BlogID:   1,
         Author:   "John Doe",
         Date:     "2020-01-01",
         Duration: 4,
@@ -38,7 +38,7 @@ func SetupTestDB(t *testing.T, ctx context.Context, conn *pgx.Conn) {
     }
 
     test2 := db.BlogPost{
-        BlogID:   1,
+        BlogID:   2,
         Author:   "Jane Doe",
         Date:     "2021-01-01",
         Duration: 100,
@@ -69,6 +69,24 @@ func SetupTestDB(t *testing.T, ctx context.Context, conn *pgx.Conn) {
         test2.Duration,
         test2.URL,
         test2.Content)
+    if err != nil {
+        t.Fatalf("Unable to insert test data, no tests run. Error: %v\n", err)
+    }
+
+    _, err = conn.Exec(
+        ctx,
+        "INSERT INTO BLOG_POST_TITLES VALUES ($1, $2)",
+        test1.BlogID,
+        "john-doe")
+    if err != nil {
+        t.Fatalf("Unable to insert test data, no tests run. Error: %v\n", err)
+    }
+
+    _, err = conn.Exec(
+        ctx,
+        "INSERT INTO BLOG_POST_TITLES VALUES ($1, $2)",
+        test2.BlogID,
+        "jane-doe")
     if err != nil {
         t.Fatalf("Unable to insert test data, no tests run. Error: %v\n", err)
     }

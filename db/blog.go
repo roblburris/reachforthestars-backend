@@ -8,9 +8,12 @@ import (
 )
 
 // Prepared SQL statements
-const GET_BLOG_POST_STATEMENT = `SELECT 
+const GET_ALL_BLOG_POSTS = `SELECT * 
+                            FROM BLOG_POSTS`
+const GET_BLOG_POST_STATEMENT = `SELECT b.blogid, b.author, b.datePosted, b.duration,
+                                    b.url, b.content
 							FROM BLOG_POSTS as b, BLOG_POST_TITLES as t 
-							WHERE t.blogid = b.blogID
+							WHERE t.blogid = b.blogid
 							AND t.blogTitle = $1`
 const INSERT_NEW_POST = `INSERT INTO BLOG_POSTS VALUES ($1, $2, $3, $4, $5, $6)`
 const INSERT_NEW_TITLE = `INSERT INTO BLOG_POST_TITLES VALUES($1, $2)`
@@ -34,7 +37,7 @@ func GetAllBlogPosts(ctx context.Context, conn *pgx.Conn) []BlogPost {
         }
     }(tx, ctx)
 
-    rows, err := tx.Query(ctx, "SELECT * FROM BLOG_POSTS")
+    rows, err := tx.Query(ctx, GET_ALL_BLOG_POSTS)
     if err != nil {
         log.Printf("ERROR: Unable to get blog posts from DB. %v\n", err)
         return nil
@@ -159,6 +162,5 @@ func InsertNewBlogPost(ctx context.Context, conn *pgx.Conn, postInfo *BlogPost, 
     if err != nil {
         return errors.New("sql_unable_commit")
     }
-
     return nil
 }

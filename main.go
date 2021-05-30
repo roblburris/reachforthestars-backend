@@ -12,7 +12,9 @@ func main() {
     // create DB connection
     conn, err := pgx.Connect(ctx, URL)
     if err != nil {
-        log.Fatalf("Unable to connect to DB %v\n", err)
+       log.Fatalf("Unable to connect to DB %v\n", err)
     }
     defer conn.Close(ctx)
+
+    // clear DB and run create tables
 }

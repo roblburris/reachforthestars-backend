@@ -54,8 +54,8 @@ func testGetAllBlogPosts(ctx context.Context, conn *pgx.Conn, t *testing.T) {
     }
 
     res0 := result[0]
-    if res0.BlogID != 0 {
-        t.Fatalf("ERROR: expected BlogID 0 but got %d", res0.BlogID)
+    if res0.BlogID != 1 {
+        t.Fatalf("ERROR: expected BlogID 1 but got %d", res0.BlogID)
     }
     if res0.Author != "John Doe" {
         t.Fatalf("ERROR: expected Author `John Doe` but got `%s`", res0.Author)
@@ -74,8 +74,8 @@ func testGetAllBlogPosts(ctx context.Context, conn *pgx.Conn, t *testing.T) {
     }
 
     res1 := result[1]
-    if res1.BlogID != 1 {
-        t.Fatalf("ERROR: expected BlogID 1 but got %d", res1.BlogID)
+    if res1.BlogID != 2 {
+        t.Fatalf("ERROR: expected BlogID 2 but got %d", res1.BlogID)
     }
     if res1.Author != "Jane Doe" {
         t.Fatalf("ERROR: expected Author `Jane Doe` but got `%s`", res1.Author)
@@ -93,5 +93,5 @@ func testGetAllBlogPosts(ctx context.Context, conn *pgx.Conn, t *testing.T) {
         t.Fatalf("ERROR: expected Content `i am Jane Doe...` but got `%s`", res1.Content)
     }
 
-    t.Log("GetAllBlogPosts tests passed\n")
+    t.Log("GetAllBlogPostsEndpoint tests passed\n")
 }
