@@ -8,6 +8,15 @@ import (
     "testing"
 )
 
+type InsertPost struct {
+    Title string `json:"title"`
+    Author string `json:"author"`
+    Date string `json:"date"`
+    Duration uint32 `json:"duration"`
+    URL string `json:"url"`
+    Content string `json:"content"`
+}
+
 func SetupTestDB(t *testing.T, ctx context.Context, conn *pgxpool.Pool) {
     // clear DB and run create tables
     deleteTables, err := ioutil.ReadFile("../db/setup/delete-tables.sql")

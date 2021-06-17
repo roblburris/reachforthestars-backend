@@ -20,6 +20,26 @@ func min(a, b int) int {
     return b
 }
 
+func convertBlogPostDBSlice (dbRes []db.BlogPost) []BlogPostJSON {
+    var res []BlogPostJSON
+    for i := 0; i < len(dbRes); i++ {
+        res = append(res, convertBlogPostDBToJSON(dbRes[i]))
+    }
+    return res
+}
+
+func convertBlogPostDBToJSON(dbRes db.BlogPost) BlogPostJSON {
+    var temp BlogPostJSON
+    temp.BlogID = dbRes.BlogID
+    temp.Duration = dbRes.Duration
+    temp.Author = dbRes.Author
+    temp.Date = dbRes.Date
+    temp.Content = string(dbRes.Content)
+    temp.URL = string(dbRes.URL)
+
+    return temp
+}
+
 // GetAllBlogPosts Returns all blog posts for the blog page
 func GetAllBlogPosts(ctx context.Context, conn *pgxpool.Pool) RequestHandler {
     return func(w http.ResponseWriter, r *http.Request) {
@@ -32,12 +52,12 @@ func GetAllBlogPosts(ctx context.Context, conn *pgxpool.Pool) RequestHandler {
 
         // get blog posts from the DB and filter the content to create
         // summaries
-        res := db.GetAllBlogPosts(ctx, conn)
+        res := convertBlogPostDBSlice(db.GetAllBlogPosts(ctx, conn))
         for i := 0; i < len(res); i++ {
-            strippedContent := strings.Fields(string(res[i].Content))
+            strippedContent := strings.Fields(res[i].Content)
             temp := strings.Join(strippedContent[:min(len(strippedContent), 20)], " ")
             temp += "..."
-            res[i].Content = []byte(temp)
+            res[i].Content = temp
         }
 
         jsonRes, err := json.Marshal(res)
@@ -72,7 +92,7 @@ func GetSpecificBlogPost(ctx context.Context, conn *pgxpool.Pool) RequestHandler
         }
 
         // title is OK (for now), query DB to get desired blog post
-        post := db.GetBlogPostByID(ctx, conn, desiredTitle)
+        post := convertBlogPostDBToJSON(db.GetBlogPostByID(ctx, conn, desiredTitle))
         if post.Author == "" {
             text := "404: not found"
             log.Printf("unable to find post, %s\n", text)

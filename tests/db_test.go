@@ -18,8 +18,8 @@ func TestDB(t *testing.T) {
     SetupTestDB(t, ctx, pool)
     // Unit tests for testing blog DB
     testGetAllBlogPostsDB(t, ctx, pool)
-    testGetSpecificBP(t, ctx, pool)
-    testInsertNewBP(t, ctx, pool)
+    testGetSpecificBlogPostDB(t, ctx, pool)
+    testInsertNewBlogPostDB(t, ctx, pool)
 }
 
 func testGetAllBlogPostsDB(t *testing.T, ctx context.Context, conn *pgxpool.Pool) {
@@ -68,7 +68,7 @@ func testGetAllBlogPostsDB(t *testing.T, ctx context.Context, conn *pgxpool.Pool
     t.Log("db.GetAllBlogPosts tests passed\n")
 }
 
-func testGetSpecificBP(t *testing.T, ctx context.Context, conn *pgxpool.Pool) {
+func testGetSpecificBlogPostDB(t *testing.T, ctx context.Context, conn *pgxpool.Pool) {
     res0 := db.GetBlogPostByID(ctx, conn, "john-doe")
 
     if res0.BlogID != 1 {
@@ -93,7 +93,7 @@ func testGetSpecificBP(t *testing.T, ctx context.Context, conn *pgxpool.Pool) {
     t.Logf("db.GetBlogPostByID test passed")
 }
 
-func testInsertNewBP(t *testing.T, ctx context.Context, conn *pgxpool.Pool) {
+func testInsertNewBlogPostDB(t *testing.T, ctx context.Context, conn *pgxpool.Pool) {
     testInsertData := db.BlogPost{
         BlogID:   0,
         Author:   "Foo Bar",

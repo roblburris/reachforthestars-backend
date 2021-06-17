@@ -3,6 +3,7 @@ package endpoints
 import (
     "context"
     "encoding/json"
+    "fmt"
     "github.com/jackc/pgx/v4/pgxpool"
     "github.com/roblburris/reachforthestars-backend/db"
     "io/ioutil"
@@ -35,6 +36,13 @@ func InsertNewBlogPost(ctx context.Context, conn *pgxpool.Pool) RequestHandler {
             w.WriteHeader(http.StatusBadRequest)
             return
         }
+        if result["title"] == nil {
+            text := "400: bad request"
+            log.Printf("ERROR: could not read \"title\" field. %s\n", text)
+            w.WriteHeader(http.StatusBadRequest)
+            return
+        }
+
         title := result["title"].(string)
         if title == "" {
             text := "400: bad request"
@@ -43,6 +51,12 @@ func InsertNewBlogPost(ctx context.Context, conn *pgxpool.Pool) RequestHandler {
             return
         }
 
+        if result["author"] == nil {
+            text := "400: bad request"
+            log.Printf("ERROR: could not read \"author\" field. %s\n", text)
+            w.WriteHeader(http.StatusBadRequest)
+            return
+        }
         author := result["author"].(string)
         if author == "" {
             text := "400: bad request"
@@ -51,6 +65,12 @@ func InsertNewBlogPost(ctx context.Context, conn *pgxpool.Pool) RequestHandler {
             return
         }
 
+        if result["date"] == nil {
+            text := "400: bad request"
+            log.Printf("ERROR: could not read \"date\" field. %s\n", text)
+            w.WriteHeader(http.StatusBadRequest)
+            return
+        }
         date := result["date"].(string)
         if date == "" {
             text := "400: bad request"
@@ -59,7 +79,13 @@ func InsertNewBlogPost(ctx context.Context, conn *pgxpool.Pool) RequestHandler {
             return
         }
 
-        duration := result["date"].(uint32)
+        if result["duration"] == nil {
+            text := "400: bad request"
+            log.Printf("ERROR: could not read \"duration\" field. %s\n", text)
+            w.WriteHeader(http.StatusBadRequest)
+            return
+        }
+        duration := result["duration"].(float64)
         if duration == 0 {
             text := "400: bad request"
             log.Printf("ERROR: could not read \"duration\" field. %s\n", text)
@@ -67,16 +93,28 @@ func InsertNewBlogPost(ctx context.Context, conn *pgxpool.Pool) RequestHandler {
             return
         }
 
-        url := result["url"].([]byte)
-        if url == nil {
+        if result["url"] == nil {
+            text := "400: bad request"
+            log.Printf("ERROR: could not read \"url\" field. %s\n", text)
+            w.WriteHeader(http.StatusBadRequest)
+            return
+        }
+        url := fmt.Sprintf("%v", result["url"])
+        if url == "" {
             text := "400: bad request"
             log.Printf("ERROR: could not read \"url\" field. %s\n", text)
             w.WriteHeader(http.StatusBadRequest)
             return
         }
 
-        content := result["content"].([]byte)
-        if content == nil {
+        if result["content"] == nil {
+            text := "400: bad request"
+            log.Printf("ERROR: could not read \"content\" field. %s\n", text)
+            w.WriteHeader(http.StatusBadRequest)
+            return
+        }
+        content := fmt.Sprintf("%v", result["content"])
+        if content == "" {
             text := "400: bad request"
             log.Printf("ERROR: could not read \"url\" field. %s\n", text)
             w.WriteHeader(http.StatusBadRequest)
@@ -88,9 +126,9 @@ func InsertNewBlogPost(ctx context.Context, conn *pgxpool.Pool) RequestHandler {
             BlogID:   0,
             Author:   author,
             Date:     date,
-            Duration: duration,
-            URL:      url,
-            Content:  content,
+            Duration: uint32(duration),
+            URL: []byte(url),
+            Content: []byte(content),
         }
         err = db.InsertNewBlogPost(ctx, conn, &blogPost, title)
         if err != nil {
